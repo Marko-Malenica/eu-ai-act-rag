@@ -48,67 +48,67 @@ Streamlit frontend sends POST requests to a FastAPI backend. The backend uses La
 ### Installation
 
 1. Clone the repository
-\```bash
+```bash
 git clone https://github.com/Marko-Malenica/eu-ai-act-rag
 cd eu-ai-act-rag
-\```
+```
 
 2. Pull Ollama models
-\```bash
+```bash
 ollama pull llama3.2
 ollama pull nomic-embed-text
-\```
+```
 
 3. Setup environment
-\```bash
+```bash
 make setup
-\```
+```
 
 4. Start PostgreSQL and ingest EU AI Act
-\```bash
+```bash
 make start
 make ingest
-\```
+```
 
 5. Run the application
-\```bash
+```bash
 make start
-\```
+```
 
 ## API Endpoints
 
 ### POST /query
 Request:
-\```json
+```json
 {
   "question": "What is a high-risk AI system?"
 }
-\```
+```
 
 Response:
-\```json
+```json
 {
   "answer": "According to Article 6 of the EU AI Act...",
   "confidence": 0.87,
   "sources": ["Article 6", "Annex III"],
   "flag": null
 }
-\```
+```
 
 Low confidence response:
-\```json
+```json
 {
   "answer": "...",
   "confidence": 0.45,
   "sources": ["Article 2"],
   "flag": "Low confidence — consult official EU AI Act source"
 }
-\```
+```
 
 ### GET /health
-\```json
+```json
 {"status": "ok"}
-\```
+```
 
 ## Data Source
 
