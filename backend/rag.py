@@ -53,5 +53,6 @@ def query_eu_ai_act(question: str) -> dict:
     
     return {
         "answer": answer,
-        "sources": sources
+        "sources": sources,
+        "source_docs": source_docs
     }
