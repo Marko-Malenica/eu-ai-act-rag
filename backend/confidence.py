@@ -14,8 +14,10 @@ WEIGHTS = {
     "semantic": 0.15
 }
 
-embeddings = OllamaEmbeddings(model="nomic-embed-text")
-llm = ChatOllama(model="llama3.2", temperature=0)
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+
+embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=OLLAMA_BASE_URL)
+llm = ChatOllama(model="llama3.2", temperature=0, base_url=OLLAMA_BASE_URL)
 
 #Embedding model nomic-embed-text ensures that all vector components are >= 0,
 #thus making the result always positive (where cosine similarity usually has
@@ -25,14 +27,9 @@ def cosine_similarity(a: list, b: list) -> float:
     return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
 
 
-def retrieval_score(source_docs, question: str) -> float:
-    if not source_docs:
+def retrieval_score(similarities: list) -> float:
+    if not similarities:
         return 0.0
-    question_embedding = embeddings.embed_query(question)
-    similarities = []
-    for doc in source_docs:
-        doc_embedding = embeddings.embed_query(doc.page_content)
-        similarities.append(cosine_similarity(question_embedding, doc_embedding))
     return float(np.mean(similarities))
 
 #Put grounding and consistency score into the same function to increase performance,
@@ -104,9 +101,16 @@ def semantic_answer_similarity(question: str, answer: str) -> float:
 
 
 def compute_confidence(question: str, answer: str, source_docs: list) -> float:
+    question_embedding = embeddings.embed_query(question)
+    doc_embeddings = [embeddings.embed_query(doc.page_content) for doc in source_docs]
+    
+    similarities = [cosine_similarity(doc_emb, question_embedding) for doc_emb in doc_embeddings]
+    if max(similarities) < 0.55:
+        return 0.0, "Question appears to be outside the scope of the EU AI Act"
+
     context = "\n\n".join([doc.page_content for doc in source_docs])
     
-    r_score = retrieval_score(source_docs, question)
+    r_score = retrieval_score(similarities)
     g_score, c_score = grounding_and_consistency_score(answer, context)
     s_score = semantic_answer_similarity(question, answer)
     
@@ -117,4 +121,4 @@ def compute_confidence(question: str, answer: str, source_docs: list) -> float:
         WEIGHTS["semantic"] * s_score
     )
     
-    return round(confidence, 2)
+    return round(confidence, 2), None

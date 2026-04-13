@@ -5,9 +5,12 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
 from langchain_postgres import PGVector
 
+from backend.rag import OLLAMA_BASE_URL
+
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 def ingest():
     print("Loading PDF...")
@@ -24,7 +27,8 @@ def ingest():
     print(f"Created {len(chunks)} chunks")
 
     print("Initializing embeddings...")
-    embeddings = OllamaEmbeddings(model="nomic-embed-text")
+    
+    embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=OLLAMA_BASE_URL)
 
     print("Storing in PostgreSQL...")
     vectorstore = PGVector(

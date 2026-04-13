@@ -9,16 +9,16 @@ from langchain_core.output_parsers import StrOutputParser
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
-embeddings = OllamaEmbeddings(model="nomic-embed-text")
+embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=OLLAMA_BASE_URL)
+llm = ChatOllama(model="llama3.2", temperature=0, base_url=OLLAMA_BASE_URL)
 
 vectorstore = PGVector(
     embeddings=embeddings,
     collection_name="eu_ai_act",
     connection=DATABASE_URL,
 )
-
-llm = ChatOllama(model="llama3.2", temperature=0)
 
 prompt = PromptTemplate.from_template("""You are an expert on the EU AI Act. 
 Use the following context to answer the question.

@@ -50,17 +50,21 @@ def health():
 def query(request: QueryRequest, db: Session = Depends(get_db)):
     result = query_eu_ai_act(request.question)
     
-    confidence = float(compute_confidence(
-        question=request.question,
-        answer=result["answer"],
-        source_docs=result["source_docs"]
-    ))
-    
-    flag = None
-    if confidence < 0.4:
-        flag = "Low confidence — consult official EU AI Act source"
-    elif confidence < 0.6:
-        flag = "Medium confidence — verify with official source"
+    confidence, out_of_scope_flag = compute_confidence(
+    question=request.question,
+    answer=result["answer"],
+    source_docs=result["source_docs"]
+    )
+    confidence = float(confidence)
+
+    flag = out_of_scope_flag
+    if flag is None:
+        if confidence < 0.6:
+            flag = "low"
+        elif confidence < 0.8:
+            flag = "medium"
+        else:
+            flag = "high"
     
     sources_str = ", ".join(result["sources"])
     
