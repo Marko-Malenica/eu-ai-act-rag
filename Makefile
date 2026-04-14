@@ -1,16 +1,18 @@
-.PHONY: setup start stop ingest
+.PHONY: setup start stop ingest logs
 
 setup:
-	python -m venv venv
-	. venv/bin/activate && pip install -r requirements.txt
+	cp .env.example .env
+	@echo "Fill in .env before continuing"
 
 start:
+	ollama serve &
 	docker compose up -d
-	. venv/bin/activate && uvicorn backend.main:app --reload &
-	. venv/bin/activate && streamlit run frontend/app.py
 
 ingest:
-	. venv/bin/activate && python scripts/ingest.py
+	docker compose --profile setup run --rm ingest
 
 stop:
 	docker compose down
+
+logs:
+	docker compose logs -f

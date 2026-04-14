@@ -41,9 +41,7 @@ Streamlit frontend sends POST requests to a FastAPI backend. The backend uses La
 
 ### Prerequisites
 - Docker
-- Python 3.11+
-- Ollama installed
-- Make
+- Ollama
 
 ### Installation
 
@@ -59,21 +57,25 @@ ollama pull llama3.2
 ollama pull nomic-embed-text
 ```
 
-3. Setup environment
+3. Download the EU AI Act PDF from [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) and place it at `data/eu_ai_act.pdf`
+
+4. Setup environment
 ```bash
 make setup
+# Edit .env with your credentials
 ```
 
-4. Start PostgreSQL and ingest EU AI Act
+5. Start the application
 ```bash
 make start
+```
+
+6. First time only — ingest EU AI Act into the database
+```bash
 make ingest
 ```
 
-5. Run the application
-```bash
-make start
-```
+7. Open [http://localhost:8501](http://localhost:8501)
 
 ## API Endpoints
 
@@ -90,8 +92,8 @@ Response:
 {
   "answer": "According to Article 6 of the EU AI Act...",
   "confidence": 0.87,
-  "sources": ["Article 6", "Annex III"],
-  "flag": null
+  "sources": ["Page 12", "Page 53"],
+  "flag": "high"
 }
 ```
 
@@ -100,8 +102,8 @@ Low confidence response:
 {
   "answer": "...",
   "confidence": 0.45,
-  "sources": ["Article 2"],
-  "flag": "Low confidence — consult official EU AI Act source"
+  "sources": ["Page 2"],
+  "flag": "low"
 }
 ```
 
