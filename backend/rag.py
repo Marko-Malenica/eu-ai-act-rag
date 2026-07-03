@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 from langchain_ollama import OllamaEmbeddings, ChatOllama
 from langchain_postgres import PGVector
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv()
@@ -31,28 +30,23 @@ Question: {question}
 
 Answer:""")
 
-retriever = vectorstore.as_retriever(
-    search_type="similarity",
-    search_kwargs={"k": 5}
-)
-
-chain = (
-    {"context": retriever, "question": RunnablePassthrough()}
-    | prompt
-    | llm
-    | StrOutputParser()
-)
+chain = prompt | llm | StrOutputParser()
 
 def query_eu_ai_act(question: str) -> dict:
-    source_docs = retriever.invoke(question)
-    answer = chain.invoke(question)
-    
+    results = vectorstore.similarity_search_with_relevance_scores(question, k=5)
+    source_docs = [doc for doc, _ in results]
+    similarities = [score for _, score in results]
+
+    context = "\n\n".join(doc.page_content for doc in source_docs)
+    answer = chain.invoke({"context": context, "question": question})
+
     sources = list(set([
         f"Page {doc.metadata.get('page', 'unknown')}" for doc in source_docs
     ]))
-    
+
     return {
         "answer": answer,
         "sources": sources,
-        "source_docs": source_docs
+        "source_docs": source_docs,
+        "similarities": similarities
     }

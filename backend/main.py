@@ -53,7 +53,8 @@ def query(request: QueryRequest, db: Session = Depends(get_db)):
     confidence, out_of_scope_flag = compute_confidence(
     question=request.question,
     answer=result["answer"],
-    source_docs=result["source_docs"]
+    source_docs=result["source_docs"],
+    similarities=result["similarities"]
     )
     confidence = float(confidence)
 

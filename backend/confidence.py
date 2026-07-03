@@ -100,12 +100,8 @@ def semantic_answer_similarity(question: str, answer: str) -> float:
     return cosine_similarity(question_embedding, answer_embedding)
 
 
-def compute_confidence(question: str, answer: str, source_docs: list) -> float:
-    question_embedding = embeddings.embed_query(question)
-    doc_embeddings = [embeddings.embed_query(doc.page_content) for doc in source_docs]
-    
-    similarities = [cosine_similarity(doc_emb, question_embedding) for doc_emb in doc_embeddings]
-    if max(similarities) < 0.55:
+def compute_confidence(question: str, answer: str, source_docs: list, similarities: list) -> float:
+    if not similarities or max(similarities) < 0.55:
         return 0.0, "Question appears to be outside the scope of the EU AI Act"
 
     context = "\n\n".join([doc.page_content for doc in source_docs])
