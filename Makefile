@@ -5,7 +5,6 @@ setup:
 	@echo "Fill in .env before continuing"
 
 start:
-	ollama serve &
 	docker compose up -d
 
 ingest:

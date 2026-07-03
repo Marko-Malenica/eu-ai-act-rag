@@ -23,8 +23,8 @@ services:
     container_name: eu_ai_act_backend
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       FRONTEND_URL: ${FRONTEND_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
       - "8000:8000"
     depends_on:
@@ -34,6 +34,7 @@ services:
       - ./backend:/app/backend
       - ./scripts:/app/scripts
       - ./data:/app/data
+      - ./eval:/app/eval
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -58,7 +59,7 @@ services:
     container_name: eu_ai_act_ingest
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
       db:
         condition: service_healthy

@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from langchain_ollama import OllamaEmbeddings, ChatOllama
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_postgres import PGVector
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -8,14 +8,13 @@ from langchain_core.output_parsers import StrOutputParser
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
-embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=OLLAMA_BASE_URL)
-llm = ChatOllama(model="llama3.2", temperature=0, base_url=OLLAMA_BASE_URL)
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+llm = ChatOpenAI(model="gpt-5.4", temperature=0)
 
 vectorstore = PGVector(
     embeddings=embeddings,
-    collection_name="eu_ai_act",
+    collection_name="eu_ai_act_openai",
     connection=DATABASE_URL,
 )
 

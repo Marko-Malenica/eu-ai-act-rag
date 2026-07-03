@@ -1,6 +1,5 @@
-import os
 import numpy as np
-from langchain_ollama import OllamaEmbeddings, ChatOllama
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
@@ -14,14 +13,9 @@ WEIGHTS = {
     "semantic": 0.15
 }
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+llm = ChatOpenAI(model="gpt-5.4", temperature=0)
 
-embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=OLLAMA_BASE_URL)
-llm = ChatOllama(model="llama3.2", temperature=0, base_url=OLLAMA_BASE_URL)
-
-#Embedding model nomic-embed-text ensures that all vector components are >= 0,
-#thus making the result always positive (where cosine similarity usually has
-#an output [-1, 1]).
 def cosine_similarity(a: list, b: list) -> float:
     a, b = np.array(a), np.array(b)
     return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
@@ -99,16 +93,15 @@ def semantic_answer_similarity(question: str, answer: str) -> float:
     answer_embedding = embeddings.embed_query(answer)
     return cosine_similarity(question_embedding, answer_embedding)
 
-
 def compute_confidence(question: str, answer: str, source_docs: list, similarities: list) -> float:
-    if not similarities or max(similarities) < 0.55:
+    if not similarities or max(similarities) < 0.45:
         return 0.0, "Question appears to be outside the scope of the EU AI Act"
 
     context = "\n\n".join([doc.page_content for doc in source_docs])
     
-    r_score = retrieval_score(similarities)
+    r_score = max(0.0, retrieval_score(similarities))
     g_score, c_score = grounding_and_consistency_score(answer, context)
-    s_score = semantic_answer_similarity(question, answer)
+    s_score = max(0.0, semantic_answer_similarity(question, answer))
     
     confidence = (
         WEIGHTS["retrieval"] * r_score +

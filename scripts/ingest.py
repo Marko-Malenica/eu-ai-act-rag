@@ -2,15 +2,12 @@ import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_ollama import OllamaEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_postgres import PGVector
-
-from backend.rag import OLLAMA_BASE_URL
 
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 def ingest():
     print("Loading PDF...")
@@ -27,13 +24,13 @@ def ingest():
     print(f"Created {len(chunks)} chunks")
 
     print("Initializing embeddings...")
-    
-    embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=OLLAMA_BASE_URL)
+
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
     print("Storing in PostgreSQL...")
     vectorstore = PGVector(
         embeddings=embeddings,
-        collection_name="eu_ai_act",
+        collection_name="eu_ai_act_openai",
         connection=DATABASE_URL,
     )
     vectorstore.add_documents(chunks)
